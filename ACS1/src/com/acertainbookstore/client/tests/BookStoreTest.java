@@ -27,7 +27,7 @@ import com.acertainbookstore.utils.BookStoreException;
 /**
  * {@link BookStoreTest} tests the {@link BookStore} interface.
  * 
- * @see BookStore
+ * @see BookStore lol
  */
 public class BookStoreTest {
 
