@@ -24,6 +24,12 @@ public class BookRating {
 		this.setISBN(isbn);
 		this.setRating(rating);
 	}
+	
+	// Immuteble bookrating
+	// For making a copy so reference does not stay the same
+	public BookRating immutableBookRating() {
+		return (new BookRating(this.isbn, this.rating));
+	}
 
 	/**
 	 * Gets the ISBN of the book.

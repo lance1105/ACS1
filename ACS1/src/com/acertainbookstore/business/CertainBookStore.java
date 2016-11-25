@@ -28,6 +28,9 @@ public class CertainBookStore implements BookStore, StockManager {
 
 	/** The mapping of books from ISBN to {@link BookStoreBook}. */
 	private Map<Integer, BookStoreBook> bookMap = null;
+	
+	/** The mapping of books with ISBN and rating */
+	private Map<Integer, BookRating> bookRatings = null;
 
 	/**
 	 * Instantiates a new {@link CertainBookStore}.
@@ -35,7 +38,10 @@ public class CertainBookStore implements BookStore, StockManager {
 	public CertainBookStore() {
 
 		// Constructors are not synchronized
-		bookMap = new HashMap<>();
+		this.bookMap = new HashMap<>();
+		
+		// Set for book ratings
+		this.bookRatings = new HashMap<>();
 	}
 
 	/*
@@ -56,6 +62,7 @@ public class CertainBookStore implements BookStore, StockManager {
 			String bookAuthor = book.getAuthor();
 			int noCopies = book.getNumCopies();
 			float bookPrice = book.getPrice();
+			
 
 			if (BookStoreUtility.isInvalidISBN(isbn)) {
 				throw new BookStoreException(BookStoreConstants.BOOK + book.toString() + BookStoreConstants.INVALID);
@@ -78,6 +85,7 @@ public class CertainBookStore implements BookStore, StockManager {
 			}
 
 			if (bookMap.containsKey(isbn)) {
+				//System.out.println(BookStoreConstants.ISBN + isbn + BookStoreConstants.DUPLICATED);
 				throw new BookStoreException(BookStoreConstants.ISBN + isbn + BookStoreConstants.DUPLICATED);
 			}
 		}
@@ -145,6 +153,7 @@ public class CertainBookStore implements BookStore, StockManager {
 
 		return listBooks;
 	}
+	
 
 	/*
 	 * (non-Javadoc)
@@ -357,7 +366,23 @@ public class CertainBookStore implements BookStore, StockManager {
 	 */
 	@Override
 	public synchronized List<Book> getTopRatedBooks(int numBooks) throws BookStoreException {
-		throw new BookStoreException();
+		//throw new BookStoreException();
+		
+		List<Book> newList = new ArrayList<>();
+		
+		// For each book rating, create a new copy and add to the new set
+		for (BookRating br : this.bookRatings.values()) {
+			BookStoreBook book = this.bookMap.get(br.getISBN());
+			if (book == null) {
+				throw new BookStoreException(BookStoreConstants.ISBN + br.getISBN() + BookStoreConstants.NOT_AVAILABLE);
+			}
+			newList.add(book.immutableStockBook());
+		}
+		
+		return newList;
+		
+		// numbook is more than registered books?
+		
 	}
 
 	/*
@@ -377,7 +402,27 @@ public class CertainBookStore implements BookStore, StockManager {
 	 */
 	@Override
 	public synchronized void rateBooks(Set<BookRating> bookRating) throws BookStoreException {
-		throw new BookStoreException();
+		//throw new BookStoreException();
+
+		// test if books are in the books list and rating is valid
+		for (BookRating br : bookRating) {
+			int isbn = br.getISBN();
+			int rating = br.getRating();
+			
+			if (!this.bookMap.containsKey(isbn)) {
+				throw new BookStoreException(BookStoreConstants.ISBN + isbn + BookStoreConstants.INVALID);
+			}
+			
+			if (rating < 0 || rating > 5) {
+				throw new BookStoreException(BookStoreConstants.RATING + rating + BookStoreConstants.INVALID);
+			}
+		}
+		
+		
+		for (BookRating br : bookRating) {
+			this.bookRatings.put(br.getISBN(), br);
+		}
+		
 	}
 
 	/*

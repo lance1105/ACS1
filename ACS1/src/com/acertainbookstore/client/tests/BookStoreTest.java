@@ -14,6 +14,7 @@ import org.junit.Test;
 
 import com.acertainbookstore.business.Book;
 import com.acertainbookstore.business.BookCopy;
+import com.acertainbookstore.business.BookRating;
 import com.acertainbookstore.business.CertainBookStore;
 import com.acertainbookstore.business.ImmutableStockBook;
 import com.acertainbookstore.business.StockBook;
@@ -33,7 +34,12 @@ public class BookStoreTest {
 
 	/** The Constant TEST_ISBN. */
 	private static final int TEST_ISBN = 3044560;
-
+	
+	/** List of isbn numbers for quick reference*/
+	private static final int[] ISBN_ARRAY = {
+			6843180, 4681614, 1614846, 7541351, 6846413
+	};
+	
 	/** The Constant NUM_COPIES. */
 	private static final int NUM_COPIES = 5;
 
@@ -54,6 +60,8 @@ public class BookStoreTest {
 		try {
 			String localTestProperty = System.getProperty(BookStoreConstants.PROPERTY_KEY_LOCAL_TEST);
 			localTest = (localTestProperty != null) ? Boolean.parseBoolean(localTestProperty) : localTest;
+			//localTest = false;
+			//System.out.println(localTest);
 
 			if (localTest) {
 				CertainBookStore store = new CertainBookStore();
@@ -97,6 +105,21 @@ public class BookStoreTest {
 		return new ImmutableStockBook(TEST_ISBN, "Harry Potter and JUnit", "JK Unit", (float) 10, NUM_COPIES, 0, 0, 0,
 				false);
 	}
+	
+	// Create a list of books to be added to the StockManager
+	public Set<StockBook> defineBooks(){
+		Set<StockBook> books = new HashSet<StockBook>();
+		
+		// Add random books 
+		books.add(new ImmutableStockBook(ISBN_ARRAY[0], "ACS Compendium", "Marcos", (float) 1, NUM_COPIES, 0, 0, 0, false));
+		books.add(new ImmutableStockBook(ISBN_ARRAY[1], "Learn a great haskell", "Ken", (float) 15, NUM_COPIES, 0, 0, 0, false));
+		books.add(new ImmutableStockBook(ISBN_ARRAY[2], "Algorithms trivial tutorial", "Mikkel", (float) 12, NUM_COPIES, 0, 0, 0, false));
+		books.add(new ImmutableStockBook(ISBN_ARRAY[3], "Dank Memes", "The Internet", (float) 8, NUM_COPIES, 0, 0, 0, true));
+		books.add(new ImmutableStockBook(ISBN_ARRAY[4], "Machine Learning", "SelIgel", (float) 75, NUM_COPIES, 0, 0, 0, false));
+		
+		// return the set
+		return books;
+	}
 
 	/**
 	 * Method to add a book, executed before every test case is run.
@@ -108,6 +131,7 @@ public class BookStoreTest {
 	public void initializeBooks() throws BookStoreException {
 		Set<StockBook> booksToAdd = new HashSet<StockBook>();
 		booksToAdd.add(getDefaultBook());
+		booksToAdd.addAll(defineBooks()); // Add self defined books
 		storeManager.addBooks(booksToAdd);
 	}
 
@@ -138,8 +162,8 @@ public class BookStoreTest {
 		client.buyBooks(booksToBuy);
 
 		List<StockBook> listBooks = storeManager.getBooks();
-		assertTrue(listBooks.size() == 1);
-		StockBook bookInList = listBooks.get(0);
+		assertTrue(listBooks.size() == 6); // There are 6 books not 1 because we add another 5
+		StockBook bookInList = listBooks.get(listBooks.size()-1); // DEfault book is on the last place in the list
 		StockBook addedBook = getDefaultBook();
 
 		assertTrue(bookInList.getISBN() == addedBook.getISBN() && bookInList.getTitle().equals(addedBook.getTitle())
@@ -273,6 +297,7 @@ public class BookStoreTest {
 	public void testGetBooks() throws BookStoreException {
 		Set<StockBook> booksAdded = new HashSet<StockBook>();
 		booksAdded.add(getDefaultBook());
+		booksAdded.addAll(defineBooks()); // remember to add our books to the compare list
 
 		Set<StockBook> booksToAdd = new HashSet<StockBook>();
 		booksToAdd.add(new ImmutableStockBook(TEST_ISBN + 1, "The Art of Computer Programming", "Donald Knuth",
@@ -283,7 +308,7 @@ public class BookStoreTest {
 		booksAdded.addAll(booksToAdd);
 
 		storeManager.addBooks(booksToAdd);
-
+		
 		// Get books in store.
 		List<StockBook> listBooks = storeManager.getBooks();
 
@@ -348,6 +373,130 @@ public class BookStoreTest {
 		assertTrue(booksInStorePreTest.containsAll(booksInStorePostTest)
 				&& booksInStorePreTest.size() == booksInStorePostTest.size());
 	}
+	
+	
+	// Rate a book correctly and check if it is a part of rated books
+	@Test
+	public void testRateBookCorrectly() throws BookStoreException {
+			// *** Give a book a rating
+		// Get all books in the store
+		List<StockBook> booksInStorePreTest = storeManager.getBooks();
+		
+		// Get a book
+		StockBook aBook = booksInStorePreTest.get(0);
+		
+		// Rate A book
+		BookRating br = new BookRating(aBook.getISBN(), 3);
+		Set<BookRating> setBr = new HashSet<BookRating>();
+		setBr.add(br);
+		
+		// Set the rating
+		client.rateBooks(setBr);
+		
+			// *** Get the rated book
+		// Get all books in the store
+		List<Book> booksInStoreDuringTest = client.getTopRatedBooks(booksInStorePreTest.size());
+		
+		// Assert result
+		assertTrue(booksInStoreDuringTest.contains(aBook));
+	}
+	
+	
+	// Rate a book incorrectly, rating is out of scale
+	@Test(expected=BookStoreException.class)
+	public void testRateBookWrong() throws BookStoreException {
+			// *** Give a book a rating
+		// Get all books in the store
+		List<StockBook> booksInStorePreTest = storeManager.getBooks();
+		
+		// Get a book
+		StockBook aBook = booksInStorePreTest.get(1);
+		
+		// Rate A book
+		BookRating br = new BookRating(aBook.getISBN(), 10000);
+		Set<BookRating> setBr = new HashSet<BookRating>();
+		setBr.add(br);
+		
+		// Set the rating
+		client.rateBooks(setBr);
+		
+			// *** Get the rated book
+		// Get all books in the store
+		//List<Book> booksInStoreDuringTest = client.getTopRatedBooks(booksInStorePreTest.size());
+		
+		// Assert result
+		//assertTrue(!(booksInStoreDuringTest.contains(aBook)));
+	}
+	
+	
+	// Rate a book that does not exist
+	@Test(expected=BookStoreException.class)
+	public void testRateBookNotExist() throws BookStoreException {
+			// *** Give a book a rating
+		// Get all books in the store
+		//List<StockBook> booksInStorePreTest = storeManager.getBooks();
+		
+		// Rate A book that does not exist (isbn 42)
+		BookRating br = new BookRating(42, 4);
+		Set<BookRating> setBr = new HashSet<BookRating>();
+		setBr.add(br);
+		
+		// Set the rating
+		client.rateBooks(setBr);
+		
+			// *** Get the rated book
+		// Get all books in the store
+		//List<Book> booksInStoreDuringTest = client.getTopRatedBooks(booksInStorePreTest.size());
+		
+		// Assert result
+		//assertTrue(!(booksInStoreDuringTest.contains(aBook)));
+	}
+	
+	// Rate a book to 0 and then chan
+	@Test
+	public void testRateBookRated() throws BookStoreException {
+			// *** Give a book a rating
+		// Get all books in the store
+		List<StockBook> booksInStorePreTest = storeManager.getBooks();
+		
+		
+		
+		// Get a book
+		StockBook aBook = booksInStorePreTest.get(2);
+		StockBook bBook = booksInStorePreTest.get(3);
+		
+		// Rate A book
+		BookRating br = new BookRating(aBook.getISBN(), 0);
+		BookRating br2 = new BookRating(bBook.getISBN(), 4);
+		Set<BookRating> setBr = new HashSet<BookRating>();
+		setBr.add(br);
+		setBr.add(br2);
+		
+		// Set the rating
+		client.rateBooks(setBr);
+		
+		// Get the top one book at this point
+		List<Book> topOneBookFirstRating = client.getTopRatedBooks(1);
+		
+		
+		// Rate A book
+	    br = new BookRating(aBook.getISBN(), 5);
+		setBr = new HashSet<BookRating>();
+		setBr.add(br);
+		
+		// Set the rating
+		client.rateBooks(setBr);
+		
+			// *** Get the rated book
+		// Get all books in the store
+		List<Book> topSecondBookFirstRating = client.getTopRatedBooks(1);
+		
+		// Assert result
+		assertTrue(topOneBookFirstRating.contains(bBook) && 
+				   topSecondBookFirstRating.contains(aBook));
+	}
+	
+	// A
 
 	/**
 	 * Tear down after class.

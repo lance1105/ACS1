@@ -5,6 +5,7 @@ import java.util.Set;
 
 import com.acertainbookstore.business.BookCopy;
 import com.acertainbookstore.business.BookEditorPick;
+import com.acertainbookstore.business.BookRating;
 import com.acertainbookstore.business.StockBook;
 import com.acertainbookstore.utils.BookStoreException;
 
@@ -91,4 +92,6 @@ public interface StockManager {
 	 *             the book store exception
 	 */
 	public void removeBooks(Set<Integer> isbnSet) throws BookStoreException;
+	
+
 }
