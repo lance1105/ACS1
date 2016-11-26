@@ -474,6 +474,43 @@ public class StockManagerTest {
 		booksInStoreList = storeManager.getBooks();
 		assertTrue(booksInStoreList.size() == 0);
 	}
+	
+	// test: ingen books har missed sales
+	// books har missed sales
+	
+	@Test
+	public void testGetBooksInDemand() throws BookStoreException {
+		// Get all books
+		List<StockBook> booksInStoreList = storeManager.getBooks();
+		
+		// Pick the first book in list
+		StockBook book = booksInStoreList.get(0);
+		
+		// Get missed sales before
+		List<StockBook> missedSalesBefore = storeManager.getBooksInDemand();
+		
+		// Check not in missed books list
+		assertTrue(!(missedSalesBefore.contains(book)));
+		
+		// Put the book in set of book copy
+		Set<BookCopy> buySet = new HashSet<>();
+		buySet.add(new BookCopy(book.getISBN(), book.getNumCopies()+1));
+		
+		// Make a client buy a lot of book
+		// Catch the miss sale exception and ignore inorder not to crash test
+		try {
+			client.buyBooks(buySet);
+		} catch (BookStoreException e){
+			// Do nothing - ignore exception
+		}
+		
+		// Get missed sales after
+		List<StockBook> missedSalesAfter = storeManager.getBooksInDemand();
+		
+		// Check not in missed books list
+		assertTrue(missedSalesAfter.contains(book));
+	}
+	
 
 	/**
 	 * Tear down after class.

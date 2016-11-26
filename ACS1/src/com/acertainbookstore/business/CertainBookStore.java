@@ -2,6 +2,8 @@ package com.acertainbookstore.business;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -30,7 +32,7 @@ public class CertainBookStore implements BookStore, StockManager {
 	private Map<Integer, BookStoreBook> bookMap = null;
 	
 	/** The mapping of books with ISBN and rating */
-	private Map<Integer, BookRating> bookRatings = null;
+	//private Map<Integer, BookRating> bookRatings = null;
 
 	/**
 	 * Instantiates a new {@link CertainBookStore}.
@@ -39,9 +41,6 @@ public class CertainBookStore implements BookStore, StockManager {
 
 		// Constructors are not synchronized
 		this.bookMap = new HashMap<>();
-		
-		// Set for book ratings
-		this.bookRatings = new HashMap<>();
 	}
 
 	/*
@@ -368,21 +367,39 @@ public class CertainBookStore implements BookStore, StockManager {
 	public synchronized List<Book> getTopRatedBooks(int numBooks) throws BookStoreException {
 		//throw new BookStoreException();
 		
-		List<Book> newList = new ArrayList<>();
+		// Get all books in a list
+		List<StockBook> books = this.getBooks();
 		
-		// For each book rating, create a new copy and add to the new set
-		for (BookRating br : this.bookRatings.values()) {
-			BookStoreBook book = this.bookMap.get(br.getISBN());
-			if (book == null) {
-				throw new BookStoreException(BookStoreConstants.ISBN + br.getISBN() + BookStoreConstants.NOT_AVAILABLE);
-			}
-			newList.add(book.immutableStockBook());
+		// If numBooks is larger than number of books in the collection or 
+		// is a negative number, return an exception
+		if (numBooks > books.size() || numBooks < 0){
+			throw new BookStoreException(BookStoreConstants.BOOK_NUM_PARAM + BookStoreConstants.INVALID);
 		}
 		
-		return newList;
+		// Sort books according to their average rating
+		Collections.sort(books, new Comparator<StockBook>() {
+		       public int compare(StockBook o1, StockBook o2) {
+		    	   float rating1 = o1.getAverageRating();
+		    	   float rating2 = o2.getAverageRating();
+		    	   
+		    	   if (rating1 < rating2) return 1;
+			       if (rating1 > rating2) return -1;
+			       return 0;
+		       }
+		   });
 		
-		// numbook is more than registered books?
+		// Create new list for return value
+		List<Book> newList = new ArrayList<>();
 		
+		// from the highest rated books, for each, add book to the result list
+		// as immutable book to prevent changes.
+		for (int i = 0; i < numBooks; i++) {
+			int bookISBN = books.get(i).getISBN();
+			BookStoreBook book = this.bookMap.get(bookISBN);
+			newList.add(book.immutableStockBook());
+		}
+			
+		return newList;	
 	}
 
 	/*
@@ -392,7 +409,26 @@ public class CertainBookStore implements BookStore, StockManager {
 	 */
 	@Override
 	public synchronized List<StockBook> getBooksInDemand() throws BookStoreException {
-		throw new BookStoreException();
+		//throw new BookStoreException();
+		
+		// Get all books in a list
+		List<StockBook> books = this.getBooks();
+				
+		// Create new list for return value
+		List<StockBook> newList = new ArrayList<>();
+		
+		// For each book, if number of missed sales are larger than 0,
+		// then add to return list
+		for (StockBook book : books) {
+			if (book.getNumSaleMisses() > 0){
+				int bookISBN = book.getISBN();
+				BookStoreBook br = this.bookMap.get(bookISBN);
+				newList.add(br.immutableStockBook());
+			}
+		}
+		
+		return newList;
+		
 	}
 
 	/*
@@ -419,8 +455,13 @@ public class CertainBookStore implements BookStore, StockManager {
 		}
 		
 		
+		// update the books and their ratings in the book map
 		for (BookRating br : bookRating) {
-			this.bookRatings.put(br.getISBN(), br);
+			// get book from book map
+			BookStoreBook book = this.bookMap.get(br.getISBN());
+			
+			// Update the given books rating
+			book.addRating(br.getRating());
 		}
 		
 	}

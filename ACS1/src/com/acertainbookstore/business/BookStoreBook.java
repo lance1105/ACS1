@@ -253,7 +253,7 @@ public class BookStoreBook extends ImmutableBook {
 	@Override
 	public String toString() {
 		return "ISBN = " + this.getISBN() + ", Title = " + this.getTitle() + ", Author = " + this.getAuthor()
-				+ ", Price = " + this.getPrice();
+				+ ", Price = " + this.getPrice() + ", Average Rating = " + this.getAverageRating();
 	}
 
 	/**

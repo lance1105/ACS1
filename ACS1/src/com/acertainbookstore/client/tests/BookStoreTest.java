@@ -386,7 +386,7 @@ public class BookStoreTest {
 		StockBook aBook = booksInStorePreTest.get(0);
 		
 		// Rate A book
-		BookRating br = new BookRating(aBook.getISBN(), 3);
+		BookRating br = new BookRating(aBook.getISBN(), 1);
 		Set<BookRating> setBr = new HashSet<BookRating>();
 		setBr.add(br);
 		
@@ -444,30 +444,22 @@ public class BookStoreTest {
 		// Set the rating
 		client.rateBooks(setBr);
 		
-			// *** Get the rated book
-		// Get all books in the store
-		//List<Book> booksInStoreDuringTest = client.getTopRatedBooks(booksInStorePreTest.size());
-		
-		// Assert result
-		//assertTrue(!(booksInStoreDuringTest.contains(aBook)));
 	}
 	
-	// Rate a book to 0 and then chan
+	// Rate a book to 1 and then change the rating to it becomes the most popular book
 	@Test
 	public void testRateBookRated() throws BookStoreException {
 			// *** Give a book a rating
 		// Get all books in the store
 		List<StockBook> booksInStorePreTest = storeManager.getBooks();
 		
-		
-		
 		// Get a book
 		StockBook aBook = booksInStorePreTest.get(2);
 		StockBook bBook = booksInStorePreTest.get(3);
 		
 		// Rate A book
-		BookRating br = new BookRating(aBook.getISBN(), 0);
-		BookRating br2 = new BookRating(bBook.getISBN(), 4);
+		BookRating br  = new BookRating(aBook.getISBN(), 1);
+		BookRating br2 = new BookRating(bBook.getISBN(), 2);
 		Set<BookRating> setBr = new HashSet<BookRating>();
 		setBr.add(br);
 		setBr.add(br2);
@@ -477,7 +469,6 @@ public class BookStoreTest {
 		
 		// Get the top one book at this point
 		List<Book> topOneBookFirstRating = client.getTopRatedBooks(1);
-		
 		
 		// Rate A book
 	    br = new BookRating(aBook.getISBN(), 5);
@@ -496,7 +487,23 @@ public class BookStoreTest {
 				   topSecondBookFirstRating.contains(aBook));
 	}
 	
-	// A
+	// Try and get more rated books than there are books in the bookstore
+	@Test(expected=BookStoreException.class)
+	public void testGetTopRatedBooksTooMany() throws BookStoreException {
+		// Get all books in the book store
+		List<StockBook> booksInStorePreTest = storeManager.getBooks();
+		
+		// Get top rated books more than there exist
+		client.getTopRatedBooks(booksInStorePreTest.size() + 1);
+		
+	}
+	
+	// Try and get a negative number of top rated books
+	@Test(expected=BookStoreException.class)
+	public void testGetTopRatedBooksNegativeNumber() throws BookStoreException {
+		client.getTopRatedBooks(-1);
+		
+	}
 
 	/**
 	 * Tear down after class.
