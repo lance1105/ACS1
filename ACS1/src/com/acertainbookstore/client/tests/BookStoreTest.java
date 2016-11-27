@@ -28,7 +28,7 @@ import com.acertainbookstore.utils.BookStoreException;
 /**
  * {@link BookStoreTest} tests the {@link BookStore} interface.
  * 
- * @see BookStore MATHIAS IS WAIFU!!!!
+ * @see BookStore
  */
 public class BookStoreTest {
 
@@ -44,7 +44,7 @@ public class BookStoreTest {
 	private static final int NUM_COPIES = 5;
 
 	/** The local test. */
-	private static boolean localTest = false;
+	private static boolean localTest = true;
 
 	/** The store manager. */
 	private static StockManager storeManager;
@@ -376,7 +376,6 @@ public class BookStoreTest {
 	// Rate a book correctly and check if it is a part of rated books
 	@Test
 	public void testRateBookCorrectly() throws BookStoreException {
-			// *** Give a book a rating
 		// Get all books in the store
 		List<StockBook> booksInStorePreTest = storeManager.getBooks();
 		
@@ -391,9 +390,8 @@ public class BookStoreTest {
 		// Set the rating
 		client.rateBooks(setBr);
 		
-			// *** Get the rated book
 		// Get all books in the store
-		List<Book> booksInStoreDuringTest = client.getTopRatedBooks(booksInStorePreTest.size());
+		List<Book> booksInStoreDuringTest = client.getTopRatedBooks(1);
 		
 		// Assert result
 		assertTrue(booksInStoreDuringTest.contains(aBook));
@@ -403,7 +401,6 @@ public class BookStoreTest {
 	// Rate a book incorrectly, rating is out of scale
 	@Test(expected=BookStoreException.class)
 	public void testRateBookWrong() throws BookStoreException {
-			// *** Give a book a rating
 		// Get all books in the store
 		List<StockBook> booksInStorePreTest = storeManager.getBooks();
 		
@@ -417,23 +414,13 @@ public class BookStoreTest {
 		
 		// Set the rating
 		client.rateBooks(setBr);
-		
-			// *** Get the rated book
-		// Get all books in the store
-		//List<Book> booksInStoreDuringTest = client.getTopRatedBooks(booksInStorePreTest.size());
-		
-		// Assert result
-		//assertTrue(!(booksInStoreDuringTest.contains(aBook)));
+
 	}
 	
 	
 	// Rate a book that does not exist
 	@Test(expected=BookStoreException.class)
 	public void testRateBookNotExist() throws BookStoreException {
-			// *** Give a book a rating
-		// Get all books in the store
-		//List<StockBook> booksInStorePreTest = storeManager.getBooks();
-		
 		// Rate A book that does not exist (isbn 42)
 		BookRating br = new BookRating(42, 4);
 		Set<BookRating> setBr = new HashSet<BookRating>();
@@ -447,7 +434,6 @@ public class BookStoreTest {
 	// Rate a book to 1 and then change the rating to it becomes the most popular book
 	@Test
 	public void testRateBookRated() throws BookStoreException {
-			// *** Give a book a rating
 		// Get all books in the store
 		List<StockBook> booksInStorePreTest = storeManager.getBooks();
 		
@@ -476,7 +462,6 @@ public class BookStoreTest {
 		// Set the rating
 		client.rateBooks(setBr);
 		
-			// *** Get the rated book
 		// Get all books in the store
 		List<Book> topSecondBookFirstRating = client.getTopRatedBooks(1);
 		

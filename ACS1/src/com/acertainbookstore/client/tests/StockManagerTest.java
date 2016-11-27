@@ -40,7 +40,7 @@ public class StockManagerTest {
 	private static final Integer NUM_COPIES = 5;
 
 	/** The local test. */
-	private static boolean localTest = true;
+	private static boolean localTest = false;
 
 	/** The store manager. */
 	private static StockManager storeManager;
@@ -497,7 +497,7 @@ public class StockManagerTest {
 		buySet.add(new BookCopy(book.getISBN(), book.getNumCopies()+1));
 		
 		// Make a client buy a lot of book
-		// Catch the miss sale exception and ignore inorder not to crash test
+		// Catch the miss sale exception and ignore in order not to crash test
 		try {
 			client.buyBooks(buySet);
 		} catch (BookStoreException e){

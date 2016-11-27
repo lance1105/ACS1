@@ -365,8 +365,6 @@ public class CertainBookStore implements BookStore, StockManager {
 	 */
 	@Override
 	public synchronized List<Book> getTopRatedBooks(int numBooks) throws BookStoreException {
-		//throw new BookStoreException();
-		
 		// Get all books in a list
 		List<StockBook> books = this.getBooks();
 		
@@ -396,7 +394,7 @@ public class CertainBookStore implements BookStore, StockManager {
 		for (int i = 0; i < numBooks; i++) {
 			int bookISBN = books.get(i).getISBN();
 			BookStoreBook book = this.bookMap.get(bookISBN);
-			newList.add(book.immutableStockBook());
+			newList.add(book.immutableStockBook()); // To prevent tampering with book map
 		}
 			
 		return newList;	
@@ -409,8 +407,6 @@ public class CertainBookStore implements BookStore, StockManager {
 	 */
 	@Override
 	public synchronized List<StockBook> getBooksInDemand() throws BookStoreException {
-		//throw new BookStoreException();
-		
 		// Get all books in a list
 		List<StockBook> books = this.getBooks();
 				
@@ -423,12 +419,11 @@ public class CertainBookStore implements BookStore, StockManager {
 			if (book.getNumSaleMisses() > 0){
 				int bookISBN = book.getISBN();
 				BookStoreBook br = this.bookMap.get(bookISBN);
-				newList.add(br.immutableStockBook());
+				newList.add(br.immutableStockBook()); // To prevent tampering with book map
 			}
 		}
 		
 		return newList;
-		
 	}
 
 	/*
@@ -438,22 +433,21 @@ public class CertainBookStore implements BookStore, StockManager {
 	 */
 	@Override
 	public synchronized void rateBooks(Set<BookRating> bookRating) throws BookStoreException {
-		//throw new BookStoreException();
-
 		// test if books are in the books list and rating is valid
 		for (BookRating br : bookRating) {
 			int isbn = br.getISBN();
 			int rating = br.getRating();
 			
+			// If book does not exist throw exception
 			if (!this.bookMap.containsKey(isbn)) {
 				throw new BookStoreException(BookStoreConstants.ISBN + isbn + BookStoreConstants.INVALID);
 			}
 			
+			// If rating is invalid throw exception
 			if (rating < 0 || rating > 5) {
 				throw new BookStoreException(BookStoreConstants.RATING + rating + BookStoreConstants.INVALID);
 			}
 		}
-		
 		
 		// update the books and their ratings in the book map
 		for (BookRating br : bookRating) {
@@ -463,7 +457,6 @@ public class CertainBookStore implements BookStore, StockManager {
 			// Update the given books rating
 			book.addRating(br.getRating());
 		}
-		
 	}
 
 	/*

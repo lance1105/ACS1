@@ -236,7 +236,7 @@ public class BookStoreHTTPMessageHandler extends AbstractHandler {
 	private void getTopRatedBooks(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		byte[] serializedRequestContent = getSerializedRequestContent(request);
 
-		Integer numBooks = (Integer) serializer.get().deserialize(serializedRequestContent);
+		int numBooks = (int) serializer.get().deserialize(serializedRequestContent);
 		BookStoreResponse bookStoreResponse = new BookStoreResponse();
 
 		try {
